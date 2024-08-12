@@ -18,7 +18,7 @@ User = get_user_model()
 class UserViewSet(UserViewSet):
     """Добавление новых поинтов в UserViewSet.
     /subscriptions для просмотра подписок.
-    /subscribe для добавления и удаления автора в/из подписки."""
+    /subscribe для добавления автора в подписки и удаления из подписок."""
     pagination_class = NewPagination
     permission_classes = [permissions.IsAuthenticated]
 
