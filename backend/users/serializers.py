@@ -32,7 +32,9 @@ class IsSubscribedMixin:
         return obj.subscribed.filter(user=request.user).exists()
 
 
-class UserSerializer(IsSubscribedMixin, UserSerializer):
+class UserSerializer(
+    #IsSubscribedMixin, 
+    UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
     email = serializers.EmailField()
 
@@ -46,6 +48,9 @@ class UserSerializer(IsSubscribedMixin, UserSerializer):
             'last_name',
             'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        return getattr(obj, 'is_subscribed', False)
 
 
 class SubscribeSerializer(serializers.ModelSerializer):

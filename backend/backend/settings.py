@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .variables import HOURS_24, MAX_TRY, PORT_NUMBER
+from .variables import PORT_NUMBER
 
 load_dotenv()
 
@@ -14,13 +14,12 @@ SECRET_KEY = os.getenv(
     '29e$v#27*x8@sd!14tyq_=_*$j*!wxyg=h2ayrrbh+yoba10jk')
 
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1').split()
 
 
 AUTH_USER_MODEL = 'users.User'
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,7 +31,6 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
-    'axes',
     'djoser',
     'api.apps.ApiConfig',
     'taggit',
@@ -42,9 +40,12 @@ INSTALLED_APPS = [
     'tags.apps.TagsConfig',
     'ingredients.apps.IngredientsConfig',
     'recipes.apps.RecipesConfig',
+    'debug_toolbar',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'axes.middleware.AxesMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -94,28 +95,33 @@ DATABASES = [{
 }
 ][os.getenv('DATA_BASE', 'sqlite3') == 'sqlite3']
 
-AXES_FAILURE_LIMIT = MAX_TRY
-AXES_COOLOFF_TIME = HOURS_24
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
 }
 
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+}
+
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'users.serializers.RegistrationSerialier',
+        'user_create': 'users.serializers.RegistrationSerializer',
         'user': 'users.serializers.UserSerializer',
-        "current_user": 'users.serializers.UserSerializer',
+        'current_user': 'users.serializers.UserSerializer',
+        'subscriptions_confurm': 'users.serializers.SubscribeRepresentSerializer',
     },
     'PERMISSIONS': {
         'activation': ['rest_framework.permissions.IsAdminUser'],
@@ -131,6 +137,8 @@ DJOSER = {
         'user_list': ['rest_framework.permissions.IsAdminUser'],
         'token_create': ['rest_framework.permissions.AllowAny'],
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
+        'subscriptions': ['rest_framework.permissions.IsAuthenticated'],
+        'subscribe': ['rest_framework.permissions.IsAuthenticated'],
     }
 }
 
@@ -165,3 +173,45 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+HIDE_USERS = True 
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'host.docker.internal',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://host.docker.internal',
+]
+
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    'http://localhost:80',
+    'http://host.docker.internal:3000',
+)
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+
+CORS_ALLOWED_ORIGINS = (
+    'http://localhost:3000',
+    'http://localhost:80',
+    'http://host.docker.internal:3000',
+)
+CORS_ALLOWED_ORIGIN_REGEXES = (
+    'http://localhost:3000',
+    'http://localhost:80',
+    'http://host.docker.internal:3000',
+)
